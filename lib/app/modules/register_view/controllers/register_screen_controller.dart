@@ -5,7 +5,7 @@ import 'package:kyzo/app/routes/app_routes.dart';
 
 import '../../../data/models/auth/auth_response.dart';
 import '../../../data/repositories/auth/auth_repositories.dart';
-import '../../../data/services/storage_srvices.dart';
+import '../../../data/services/storage_services.dart';
 
 class RegisterScreenController extends GetxController {
   // Services
@@ -48,8 +48,10 @@ class RegisterScreenController extends GetxController {
   }
 
   // Toggles
-  void togglePasswordVisibility() => isPasswordHidden.value = !isPasswordHidden.value;
-  void toggleConfirmPasswordVisibility() => isConfirmPasswordHidden.value = !isConfirmPasswordHidden.value;
+  void togglePasswordVisibility() =>
+      isPasswordHidden.value = !isPasswordHidden.value;
+  void toggleConfirmPasswordVisibility() =>
+      isConfirmPasswordHidden.value = !isConfirmPasswordHidden.value;
 
   // Register Logic
   Future<void> register() async {
@@ -79,20 +81,18 @@ class RegisterScreenController extends GetxController {
         password: passwordController.text,
       );
 
-
       if (response.success == true) {
         await _storeAuthData(response.data!);
 
         AppHelpers.showSnackBar(
           title: "Success",
-          message: response.message ?? "Registration successful",
+          message: response.message,
           isError: false,
         );
 
         // Safe navigation with delay
         await Future.delayed(const Duration(milliseconds: 100));
         Get.offAllNamed(Routes.usernameImage);
-
       } else {
         hasError.value = true;
         errorMessage.value = response.message;
@@ -155,7 +155,9 @@ class RegisterScreenController extends GetxController {
         // Store entire user object
         StorageServices.to.write("current_user", user.toJson());
 
-        debugPrint("✅ User data stored successfully for: ${user.name ?? 'Unknown'}");
+        debugPrint(
+          "✅ User data stored successfully for: ${user.name ?? 'Unknown'}",
+        );
       } else {
         debugPrint("⚠️ No user data received in response");
       }

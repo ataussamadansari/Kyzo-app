@@ -9,15 +9,35 @@ import 'package:kyzo/app/modules/splash_view/bindings/splash_screen_binding.dart
 import 'package:kyzo/app/modules/splash_view/views/splash_screen.dart';
 import 'package:kyzo/app/modules/username_image_view/bindings/username_image_binding.dart';
 import 'package:kyzo/app/modules/username_image_view/views/username_image_screen.dart';
+
 import 'app_routes.dart';
 
-class AppPages
-{
-    static final routes = [
-        GetPage(name: Routes.splash, page: () => SplashScreen(), binding: SplashScreenBinding()),
-        GetPage(name: Routes.register, page: () => RegisterScreen(), binding: RegisterScreenBinding()),
-        GetPage(name: Routes.login, page: () => LoginScreen(), binding: LoginScreenBinding()),
-        GetPage(name: Routes.usernameImage, page: () => UsernameImageScreen(), binding: UsernameImageBinding()),
-        GetPage(name: Routes.main, page: () => MainScreen(), binding: MainScreenBinding()),
-    ];
+class AppPages {
+  static final routes = [
+    GetPage(
+      name: Routes.splash,
+      page: () => SplashScreen(),
+      binding: SplashScreenBinding(),
+    ),
+    GetPage(
+      name: Routes.register,
+      page: () => RegisterScreen(),
+      binding: RegisterScreenBinding(),
+    ),
+    GetPage(
+      name: Routes.login,
+      page: () => LoginScreen(),
+      binding: LoginScreenBinding(),
+    ),
+    GetPage(
+      name: Routes.usernameImage,
+      page: () => UsernameImageScreen(),
+      binding: UsernameImageBinding(),
+    ),
+    GetPage(
+      name: Routes.main,
+      page: () => MainScreen(),
+      binding: MainBinding(),
+    ),
+  ];
 }

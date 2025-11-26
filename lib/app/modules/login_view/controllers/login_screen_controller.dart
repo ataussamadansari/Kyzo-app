@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:kyzo/app/core/utils/helpers.dart';
-import 'package:kyzo/app/data/services/storage_srvices.dart';
+import 'package:kyzo/app/data/services/storage_services.dart';
 import 'package:kyzo/app/routes/app_routes.dart';
 
 import '../../../data/models/auth/auth_response.dart';
@@ -75,7 +75,7 @@ class LoginScreenController extends GetxController {
       AppHelpers.showSnackBar(
         title: "Error",
         message: "Login failed. Please check your credentials.",
-        isError: true
+        isError: true,
       );
     } finally {
       isLoading.value = false;

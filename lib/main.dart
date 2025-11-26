@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -13,6 +14,9 @@ void main() async {
   await GetStorage.init();
 
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Hide nav bar + status bar (immersive sticky)
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
 
   await GetStorage.init();
   runApp(const MyApp());

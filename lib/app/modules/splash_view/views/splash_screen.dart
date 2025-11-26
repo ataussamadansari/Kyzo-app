@@ -12,8 +12,8 @@ class SplashScreen extends GetView<SplashScreenController> {
     // Determine the file based on the theme
     // context.isDarkMode is a convenient GetX extension
     final lottieFile = context.isDarkMode
-        ? "assets/lotties/blinkyzo_5.json" // Dark Mode
-        : "assets/lotties/blinkyzo_4.json"; // Light Mode
+        ? "assets/lotties/blinkyzo.json" // Dark Mode
+        : "assets/lotties/blinkyzo_2.json"; // Light Mode
 
     return Scaffold(
       body: SafeArea(
