@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:kyzo/app/core/utils/helpers.dart';
 import 'package:kyzo/app/data/services/storage_srvices.dart';
 import 'package:kyzo/app/routes/app_routes.dart';
 
@@ -30,7 +31,9 @@ class LoginScreenController extends GetxController {
   }
 
   // Toggle Password Visibility
-  void togglePasswordVisibility() => isPasswordHidden.value = !isPasswordHidden.value;
+  void togglePasswordVisibility() =>
+      isPasswordHidden.value = !isPasswordHidden.value;
+
   void toggleRememberMe() => rememberMe.value = !rememberMe.value;
 
   // Login Logic
@@ -53,7 +56,7 @@ class LoginScreenController extends GetxController {
 
         Get.snackbar(
           "Success",
-          response.message ?? "Login successful!",
+          response.message,
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: Colors.green,
           colorText: Colors.white,
@@ -62,21 +65,17 @@ class LoginScreenController extends GetxController {
         // Navigate to home screen
         Get.offAllNamed(Routes.main);
       } else {
-        Get.snackbar(
-          "Error",
-          response.message,
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
+        AppHelpers.showSnackBar(
+          title: "Error",
+          message: response.message,
+          isError: true,
         );
       }
     } catch (e) {
-      Get.snackbar(
-        "Error",
-        "Login failed. Please check your credentials.",
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
+      AppHelpers.showSnackBar(
+        title: "Error",
+        message: "Login failed. Please check your credentials.",
+        isError: true
       );
     } finally {
       isLoading.value = false;
@@ -84,18 +83,7 @@ class LoginScreenController extends GetxController {
   }
 
   Future<void> _storeAuthData(AuthResponse authResponse) async {
-
     StorageServices.to.setToken(authResponse.token!);
-
-    // Store user data if needed
-    if (authResponse.user != null) {
-      StorageServices.to.write("role", authResponse.user!.role);
-      StorageServices.to.write("username", authResponse.user!.username);
-      StorageServices.to.write("email", authResponse.user!.email);
-      StorageServices.to.write("name", authResponse.user!.name);
-      StorageServices.to.write("avatar", authResponse.user!.avatar);
-      StorageServices.to.write("isPrivate", authResponse.user!.isPrivate);
-    }
   }
 
   void goToRegister() {

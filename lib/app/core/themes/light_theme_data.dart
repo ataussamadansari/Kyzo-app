@@ -14,7 +14,6 @@ class LightThemeData {
         primary: AppColors.pureBlack,
         secondary: AppColors.gray600,
         surface: AppColors.pureWhite,
-        background: AppColors.pureWhite,
         error: AppColors.gray700,
         onPrimary: AppColors.pureWhite,
         onSecondary: AppColors.pureWhite,

@@ -14,7 +14,6 @@ class DarkThemeData {
         primary: AppColors.pureWhite,
         secondary: AppColors.gray300,
         surface: AppColors.gray900,
-        background: AppColors.pureBlack,
         error: AppColors.gray300,
         onPrimary: AppColors.pureBlack,
         onSecondary: AppColors.pureBlack,

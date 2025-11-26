@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:lottie/lottie.dart';
 
 import '../controllers/splash_screen_controller.dart';
 
@@ -8,6 +9,12 @@ class SplashScreen extends GetView<SplashScreenController> {
 
   @override
   Widget build(BuildContext context) {
+    // Determine the file based on the theme
+    // context.isDarkMode is a convenient GetX extension
+    final lottieFile = context.isDarkMode
+        ? "assets/lotties/blinkyzo_5.json" // Dark Mode
+        : "assets/lotties/blinkyzo_4.json"; // Light Mode
+
     return Scaffold(
       body: SafeArea(
         child: SizedBox(
@@ -15,19 +22,15 @@ class SplashScreen extends GetView<SplashScreenController> {
           height: double.infinity,
           child: Stack(
             children: [
-              Positioned(
+              Positioned.fill(
                 child: Center(
-                  child: Text(
-                    "KYZO",
-                    style: context.textTheme.headlineLarge!.copyWith(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 50,
-                    ),
+                  child: Lottie.asset(
+                    lottieFile,
+                    repeat: false,
                   ),
                 ),
               ),
-
-              Positioned(
+              const Positioned(
                 bottom: 32,
                 left: 0,
                 right: 0,

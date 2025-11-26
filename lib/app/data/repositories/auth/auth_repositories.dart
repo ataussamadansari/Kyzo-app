@@ -1,4 +1,5 @@
-import 'package:get/get.dart';
+import 'package:dio/dio.dart';
+import 'package:get/get.dart' hide FormData, MultipartFile;
 import 'package:kyzo/app/core/constants/constaints.dart';
 
 import '../../models/api_response_model.dart';
@@ -7,6 +8,7 @@ import '../../services/api/api_services.dart';
 
 class AuthRepository {
   final ApiServices _apiServices = Get.find<ApiServices>();
+  CancelToken? _cancelToken;
 
   // Register User
   Future<ApiResponse<AuthResponse>> register({
@@ -14,11 +16,30 @@ class AuthRepository {
     required String email,
     required String password,
   }) async {
-    return await _apiServices.post<AuthResponse>(
-      ApiConstants.register,
-      (json) => AuthResponse.fromJson(json),
-      data: {'name': name, 'email': email, 'password': password},
-    );
+    try {
+      _cancelToken = CancelToken();
+      final response = await _apiServices.post(
+        ApiConstants.register,
+        (json) => AuthResponse.fromJson(json),
+        data: {'name': name, 'email': email, 'password': password},
+        cancelToken: _cancelToken,
+      );
+
+      if (response.success && response.data != null) {
+        return ApiResponse.success(response.data!, message: response.message);
+      } else {
+        return ApiResponse.error(
+          response.message,
+          statusCode: response.statusCode,
+        );
+      }
+    } on DioException catch (e) {
+      return ApiResponse.error(
+        e.message ?? "Something went wrong",
+        statusCode: e.response?.statusCode,
+        errors: e.response?.data,
+      );
+    }
   }
 
   // Login User
@@ -26,40 +47,127 @@ class AuthRepository {
     required String email,
     required String password,
   }) async {
-    return await _apiServices.post<AuthResponse>(
-      ApiConstants.login,
-      (json) => AuthResponse.fromJson(json),
-      data: {'email': email, 'password': password},
-    );
+    try {
+      _cancelToken = CancelToken();
+      final response = await _apiServices.post(
+        ApiConstants.login,
+        (data) => AuthResponse.fromJson(data),
+        data: {'email': email, 'password': password},
+        cancelToken: _cancelToken,
+      );
+
+      if (response.success && response.data != null) {
+        return ApiResponse.success(response.data!, message: response.message);
+      } else {
+        return ApiResponse.error(
+          response.message,
+          statusCode: response.statusCode,
+        );
+      }
+    } on DioException catch (e) {
+      return ApiResponse.error(
+        e.message ?? "Something went wrong",
+        statusCode: e.response?.statusCode,
+        errors: e.response?.data,
+      );
+    }
   }
 
   // Set Username
   Future<ApiResponse<AuthResponse>> setUsername({
     required String username,
   }) async {
-    return await _apiServices.put<AuthResponse>(
-      ApiConstants.setUserName,
-      (json) => AuthResponse.fromJson(json),
-      data: {'username': username},
-    );
+    try {
+      _cancelToken = CancelToken();
+      final response = await _apiServices.put(
+        ApiConstants.setUserName,
+        (data) => AuthResponse.fromJson(data),
+        data: {"username": username},
+        cancelToken: _cancelToken,
+      );
+
+      if (response.success && response.data != null) {
+        return ApiResponse.success(response.data!, message: response.message);
+      } else {
+        return ApiResponse.success(
+          response.data!,
+          message: response.message,
+        );
+      }
+    } on DioException catch (e) {
+      return ApiResponse.error(
+        e.message ?? "Something went wrong",
+        statusCode: e.response?.statusCode,
+        errors: e.response?.data,
+      );
+    }
   }
 
-  // Set Avatar
-  Future<ApiResponse<AuthResponse>> setAvatar({required String avatar}) async {
-    return await _apiServices.put<AuthResponse>(
-      ApiConstants.setUserProfileImage,
-      (json) => AuthResponse.fromJson(json),
-      data: {'avatar': avatar},
-    );
+  // Set Avatar - FIXED VERSION
+  Future<ApiResponse<AuthResponse>> setAvatar({
+    required String avatar, // This is the file path
+  }) async {
+    try {
+      _cancelToken = CancelToken();
+
+      // Create FormData for file upload
+      final formData = FormData.fromMap({
+        'image': await MultipartFile.fromFile(
+          avatar, // Use the parameter name 'avatar'
+          filename: 'avatar_${DateTime.now().millisecondsSinceEpoch}.jpg',
+        ),
+      });
+
+      final response = await _apiServices.put(
+        ApiConstants.setUserProfileImage,
+        (data) => AuthResponse.fromJson(data),
+        data: formData, // Send FormData instead of raw JSON
+        cancelToken: _cancelToken,
+      );
+
+      if (response.success && response.data != null) {
+        return ApiResponse.success(response.data!, message: response.message);
+      } else {
+        return ApiResponse.error(
+          response.message,
+          statusCode: response.statusCode,
+        );
+      }
+    } on DioException catch (e) {
+      return ApiResponse.error(
+        e.message ?? "Something went wrong",
+        statusCode: e.response?.statusCode,
+        errors: e.response?.data,
+      );
+    }
   }
 
   // Forgot Password
   Future<ApiResponse<dynamic>> forgotPassword({required String email}) async {
-    return await _apiServices.put<dynamic>(
-      ApiConstants.forgotPassword,
-      (json) => json,
-      data: {'email': email},
-    );
+    try {
+      _cancelToken = CancelToken();
+      final response = await _apiServices.post(
+        ApiConstants.forgotPassword,
+        (data) => AuthResponse.fromJson(data),
+        data: {"email": email},
+        cancelToken: _cancelToken,
+      );
+
+      if (response.success && response.data != null) {
+        return ApiResponse.success(response.data!, message: response.message);
+      } else {
+        return ApiResponse.error(
+          response.message,
+          statusCode: response.statusCode,
+        );
+      }
+    } on DioException catch (e) {
+      return ApiResponse.error(
+        e.message ?? "Something went wrong",
+        statusCode: e.response?.statusCode,
+        errors: e.response?.data,
+      );
+    }
   }
 
   // Reset Password
@@ -74,5 +182,9 @@ class AuthRepository {
       (json) => json,
       data: {'newPassword': newPassword},
     );
+  }
+
+  Future<void> cancel() async {
+    _cancelToken?.cancel();
   }
 }
