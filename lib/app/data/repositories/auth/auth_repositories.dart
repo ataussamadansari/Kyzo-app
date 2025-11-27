@@ -26,7 +26,10 @@ class AuthRepository {
       );
 
       if (response.success && response.data != null) {
-        return ApiResponse.success(response.data!, message: response.message);
+        return ApiResponse.success(
+          response.data!,
+          message: response.data!.message,
+        );
       } else {
         return ApiResponse.error(
           response.message,
@@ -36,8 +39,7 @@ class AuthRepository {
     } on DioException catch (e) {
       return ApiResponse.error(
         e.message ?? "Something went wrong",
-        statusCode: e.response?.statusCode,
-        errors: e.response?.data,
+        statusCode: e.response?.statusCode
       );
     }
   }
@@ -57,7 +59,10 @@ class AuthRepository {
       );
 
       if (response.success && response.data != null) {
-        return ApiResponse.success(response.data!, message: response.message);
+        return ApiResponse.success(
+          response.data!,
+          message: response.data!.message,
+        );
       } else {
         return ApiResponse.error(
           response.message,
@@ -68,7 +73,6 @@ class AuthRepository {
       return ApiResponse.error(
         e.message ?? "Something went wrong",
         statusCode: e.response?.statusCode,
-        errors: e.response?.data,
       );
     }
   }
@@ -87,18 +91,20 @@ class AuthRepository {
       );
 
       if (response.success && response.data != null) {
-        return ApiResponse.success(response.data!, message: response.message);
-      } else {
         return ApiResponse.success(
           response.data!,
-          message: response.message,
+          message: response.data!.message,
+        );
+      } else {
+        return ApiResponse.error(
+          response.message,
+          statusCode: response.statusCode
         );
       }
     } on DioException catch (e) {
       return ApiResponse.error(
         e.message ?? "Something went wrong",
         statusCode: e.response?.statusCode,
-        errors: e.response?.data,
       );
     }
   }
@@ -137,7 +143,6 @@ class AuthRepository {
       return ApiResponse.error(
         e.message ?? "Something went wrong",
         statusCode: e.response?.statusCode,
-        errors: e.response?.data,
       );
     }
   }
@@ -165,7 +170,6 @@ class AuthRepository {
       return ApiResponse.error(
         e.message ?? "Something went wrong",
         statusCode: e.response?.statusCode,
-        errors: e.response?.data,
       );
     }
   }

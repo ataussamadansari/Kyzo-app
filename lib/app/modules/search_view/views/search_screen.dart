@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:kyzo/app/modules/abc_view/controllers/abc_screen_controller.dart';
 
-class SearchScreen extends GetView<AbcScreenController> {
+class SearchScreen extends GetView<SearchController> {
   const SearchScreen({super.key});
 
   @override

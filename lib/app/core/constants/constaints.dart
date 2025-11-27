@@ -11,6 +11,13 @@ class ApiConstants {
   static const String forgotPassword = "/auth/forgot-password"; // PUT
   static const String resetPassword = "/auth/reset-password/:token"; // PUT
 
+  // ------- USER -------
+  static const String me = "/user/me"; // GET
+  static const String follow = "/user/follow"; // POST
+  static const String unfollow = "/user/unfollow"; // POST
+  static const String followers = "/user/followers"; // GET
+  static const String following = "/user/following"; // GET
+
 
 
   // Headers

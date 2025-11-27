@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:get/get_rx/src/rx_typedefs/rx_typedefs.dart';
 import '../controllers/profile_controller.dart';
 
 class ProfileScreen extends GetView<ProfileController> {
@@ -19,8 +20,9 @@ class ProfileScreen extends GetView<ProfileController> {
           title: Obx(() => Text(controller.username.value)),
           actions: [
             IconButton(
-              icon: const Icon(Icons.settings_outlined),
-              onPressed: controller.openSettings,
+              icon: const Icon(Icons.logout),
+              // onPressed: controller.openSettings,
+              onPressed: controller.logOut,
             ),
           ],
         ),
@@ -65,9 +67,13 @@ class ProfileScreen extends GetView<ProfileController> {
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceAround,
                               children: [
-                                _countColumn("Posts", controller.postsCount),
-                                _countColumn("Followers", controller.followersCount),
-                                _countColumn("Following", controller.followingCount),
+                                _countColumn("Posts", controller.postsCount, (){}),
+                                _countColumn("Followers", controller.followersCount, (){
+                                  controller.gotoFollower();
+                                }),
+                                _countColumn("Following", controller.followingCount, (){
+                                  controller.gotoFollowing();
+                                }),
                               ],
                             ),
                           ),
@@ -120,7 +126,7 @@ class ProfileScreen extends GetView<ProfileController> {
                 pinned: true,
                 delegate: _TabBarDelegate(
                   TabBar(
-                    labelColor: Theme.of(context).colorScheme.primary,
+                    labelColor: context.isDarkMode ? Colors.white : Colors.black,
                     unselectedLabelColor: Colors.grey,
                     tabs: const [
                       Tab(text: "All"),
@@ -153,16 +159,19 @@ class ProfileScreen extends GetView<ProfileController> {
 
   /// ================= HELPER WIDGETS =================
 
-  Widget _countColumn(String label, RxInt count) {
-    return Column(
-      children: [
-        Obx(() => Text(
-          count.value.toString(),
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-        )),
-        const SizedBox(height: 4),
-        Text(label, style: TextStyle(color: Colors.grey.shade600)),
-      ],
+  Widget _countColumn(String label, RxInt count, Callback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Obx(() => Text(
+            count.value.toString(),
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          )),
+          const SizedBox(height: 4),
+          Text(label, style: TextStyle(color: Colors.grey.shade600)),
+        ],
+      ),
     );
   }
 
@@ -273,10 +282,11 @@ class _MediaItem {
 class _TabBarDelegate extends SliverPersistentHeaderDelegate {
   final TabBar tabBar;
   _TabBarDelegate(this.tabBar);
+  final color =  Get.isDarkMode ? Colors.black : Colors.white;
 
   @override
   Widget build(context, shrinkOffset, overlapsContent) =>
-      Container(color: Theme.of(context).scaffoldBackgroundColor, child: tabBar);
+      Container(color: color, child: tabBar);
 
   @override
   double get maxExtent => tabBar.preferredSize.height;
@@ -285,7 +295,7 @@ class _TabBarDelegate extends SliverPersistentHeaderDelegate {
   double get minExtent => tabBar.preferredSize.height;
 
   @override
-  bool shouldRebuild(old) => false;
+  bool shouldRebuild(old) => true;
 }
 
 

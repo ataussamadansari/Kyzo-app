@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:kyzo/app/core/utils/helpers.dart';
+import 'package:kyzo/app/data/services/storage_services.dart';
 import 'package:kyzo/app/routes/app_routes.dart';
 
 import '../../../data/repositories/auth/auth_repositories.dart'; // Ensure this import exists
@@ -11,7 +12,7 @@ import '../../../data/repositories/auth/auth_repositories.dart'; // Ensure this 
 
 class UsernameImageController extends GetxController {
   final AuthRepository _authRepository = Get.find<AuthRepository>();
-
+  final storage = StorageServices.to;
   // --- State Variables ---
   final usernameController = TextEditingController();
   final formKey = GlobalKey<FormState>();
@@ -57,6 +58,7 @@ class UsernameImageController extends GetxController {
     );
 
     if (usernameResponse.success) {
+      storage.write("username", usernameResponse.data!.user!.username ?? "");
       isUsernameSet = true;
     } else {
       _showError("Username Error", usernameResponse.message);

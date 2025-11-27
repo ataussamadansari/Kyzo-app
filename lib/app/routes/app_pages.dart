@@ -1,4 +1,8 @@
 import 'package:get/get.dart';
+import 'package:kyzo/app/modules/follower_view/bindings/follower_binding.dart';
+import 'package:kyzo/app/modules/follower_view/views/follower_screen.dart';
+import 'package:kyzo/app/modules/following_view/bindings/following_binding.dart';
+import 'package:kyzo/app/modules/following_view/views/following_screen.dart';
 import 'package:kyzo/app/modules/login_view/bindings/login_screen_binding.dart';
 import 'package:kyzo/app/modules/login_view/views/login_screen.dart';
 import 'package:kyzo/app/modules/main_view/bindings/main_screen_binding.dart';
@@ -38,6 +42,16 @@ class AppPages {
       name: Routes.main,
       page: () => MainScreen(),
       binding: MainBinding(),
+    ),
+    GetPage(
+      name: Routes.follower,
+      page: () => FollowerScreen(),
+      binding: FollowerBinding(),
+    ),
+    GetPage(
+      name: Routes.following,
+      page: () => FollowingScreen(),
+      binding: FollowingBinding(),
     ),
   ];
 }

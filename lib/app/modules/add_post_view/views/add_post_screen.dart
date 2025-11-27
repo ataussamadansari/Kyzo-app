@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:kyzo/app/modules/abc_view/controllers/abc_screen_controller.dart';
+import 'package:kyzo/app/modules/add_post_view/controllers/add_post_controller.dart';
 
-class AddPostScreen extends GetView<AbcScreenController> {
+class AddPostScreen extends GetView<AddPostController> {
   const AddPostScreen({super.key});
 
   @override

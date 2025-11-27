@@ -7,11 +7,13 @@ import '../../../routes/app_routes.dart';
 class MainController extends GetxController {
   final storage = StorageServices.to;
   final currentIndex = 0.obs;
+  final profileImg = ''.obs;
 
   @override
   void onInit() {
     super.onInit();
     final token = storage.getToken();
+    profileImg.value = storage.read("profile_img") ?? "";
     debugPrint("Token: $token");
   }
 

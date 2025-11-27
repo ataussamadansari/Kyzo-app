@@ -11,6 +11,8 @@ class LoginScreenController extends GetxController {
   // Services
   final AuthRepository _authRepository = Get.find<AuthRepository>();
 
+  final storage = StorageServices.to;
+
   // Text Controllers
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
@@ -54,20 +56,25 @@ class LoginScreenController extends GetxController {
         // Store token and user data
         await _storeAuthData(response.data!);
 
-        Get.snackbar(
-          "Success",
-          response.message,
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
+        AppHelpers.showSnackBar(
+          title: "Success",
+          message: response.data!.message!,
+          isError: false,
         );
+        final username = response.data!.user!.username;
 
-        // Navigate to home screen
-        Get.offAllNamed(Routes.main);
+        Future.delayed(
+          Duration(milliseconds: 100),
+          () => {
+            username == null
+                ? Get.offNamed(Routes.usernameImage)
+                : Get.offAllNamed(Routes.main),
+          },
+        );
       } else {
         AppHelpers.showSnackBar(
           title: "Error",
-          message: response.message,
+          message: response.data!.message!,
           isError: true,
         );
       }
@@ -83,7 +90,10 @@ class LoginScreenController extends GetxController {
   }
 
   Future<void> _storeAuthData(AuthResponse authResponse) async {
-    StorageServices.to.setToken(authResponse.token!);
+    storage.setToken(authResponse.token!);
+    storage.setUserId(authResponse.user!.id!);
+    storage.write("username", authResponse.user!.username ?? "");
+    storage.write("profile_img", authResponse.user!.avatar ?? "");
   }
 
   void goToRegister() {

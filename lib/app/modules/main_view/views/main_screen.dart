@@ -71,17 +71,49 @@ class MainScreen extends GetView<MainController> {
             _buildNavItem(Icons.search_outlined, Icons.search, 1, context),
             _buildAddButton(context),
             _buildNavItem(
-              Icons.video_library_outlined,
-              Icons.video_library,
+              Icons.slow_motion_video_sharp,
+              Icons.slow_motion_video_sharp,
               3,
               context,
             ),
+            controller.profileImg.value.isNotEmpty ? _buildProfileButton(context):
             _buildNavItem(Icons.person_outlined, Icons.person, 4, context),
           ],
         ),
       ),
     );
   }
+
+  Widget _buildProfileButton(BuildContext context) {
+    bool isSelected = controller.currentIndex.value == 4;
+
+    return GestureDetector(
+      onTap: () => controller.changePage(4),
+      child: Container(
+        padding: const EdgeInsets.all(3),
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: isSelected ? Colors.blue : Colors.transparent,
+            width: 2,
+          ),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(50),
+          child: Image.network(
+            controller.profileImg.value,
+            width: 26,
+            height: 26,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return const Icon(Icons.person, size: 26);
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
 
   Widget _buildNavItem(
       IconData outlineIcon,

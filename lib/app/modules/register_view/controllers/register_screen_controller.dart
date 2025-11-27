@@ -11,6 +11,8 @@ class RegisterScreenController extends GetxController {
   // Services
   final AuthRepository _authRepository = AuthRepository();
 
+  final storage = StorageServices.to;
+
   // Text Controllers
   final nameController = TextEditingController();
   final emailController = TextEditingController();
@@ -92,7 +94,7 @@ class RegisterScreenController extends GetxController {
 
         // Safe navigation with delay
         await Future.delayed(const Duration(milliseconds: 100));
-        Get.offAllNamed(Routes.usernameImage);
+        Get.offNamed(Routes.usernameImage);
       } else {
         hasError.value = true;
         errorMessage.value = response.message;
@@ -119,53 +121,10 @@ class RegisterScreenController extends GetxController {
 
   // Store auth data
   Future<void> _storeAuthData(AuthResponse authResponse) async {
-    try {
-      // Store token safely
-      if (authResponse.token != null && authResponse.token!.isNotEmpty) {
-        StorageServices.to.setToken(authResponse.token!);
-      } else {
-        debugPrint("❌ No token received in response");
-        throw Exception("No authentication token received");
-      }
-
-      // Store user data safely
-      if (authResponse.user != null) {
-        final user = authResponse.user!;
-
-        // Use the correct field name
-        final userId = user.id ?? '';
-        if (userId.isNotEmpty) {
-          StorageServices.to.setUserId(userId);
-          StorageServices.to.write("user_id", userId);
-          debugPrint("✅ User ID stored: $userId");
-        } else {
-          debugPrint("❌ No user ID received");
-          throw Exception("No user ID received");
-        }
-
-        // Store other user data with safe defaults
-        StorageServices.to.write("role", user.role ?? 'user');
-        StorageServices.to.write("username", user.username ?? '');
-        StorageServices.to.write("email", user.email ?? '');
-        StorageServices.to.write("name", user.name ?? '');
-        StorageServices.to.write("avatar", user.avatar ?? '');
-        StorageServices.to.write("isPrivate", user.isPrivate ?? false);
-        StorageServices.to.write("bio", user.bio ?? '');
-
-        // Store entire user object
-        StorageServices.to.write("current_user", user.toJson());
-
-        debugPrint(
-          "✅ User data stored successfully for: ${user.name ?? 'Unknown'}",
-        );
-      } else {
-        debugPrint("⚠️ No user data received in response");
-      }
-    } catch (e, stackTrace) {
-      debugPrint("💥 Error storing auth data: $e");
-      debugPrint("📋 Stack trace: $stackTrace");
-      throw Exception("Failed to store authentication data: $e");
-    }
+    storage.setToken(authResponse.token!);
+    storage.setUserId(authResponse.user!.id!);
+    storage.write("username", authResponse.user!.username ?? "");
+    storage.write("profile_img", authResponse.user!.avatar ?? "");
   }
 
   // Manual form data validation

@@ -5,5 +5,8 @@ abstract class Routes
     static const login = '/login';
     static const usernameImage = '/set-username-image';
     static const main = '/main';
+    static const follower = '/follower';
+    static const following = '/following';
+
 
 }
