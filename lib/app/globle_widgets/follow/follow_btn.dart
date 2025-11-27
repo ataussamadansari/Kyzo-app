@@ -17,7 +17,10 @@ class FollowBtn extends StatelessWidget {
     String text;
     Color color;
 
-    if (isFollowing) {
+    /*if (isFollowBack && isFollowing) {
+      text = "message";
+      color = Colors.grey.shade400;
+    } else*/ if (isFollowing) {
       text = "Unfollow";
       color = Colors.red;
     } else if (isFollowBack) {
@@ -29,12 +32,15 @@ class FollowBtn extends StatelessWidget {
     }
 
     return InkWell(
+      borderRadius: BorderRadius.circular(8),
       onTap: onTap,
+      focusColor: Colors.red,
       child: Container(
+        margin: EdgeInsets.all(2),
         padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 14),
         decoration: BoxDecoration(
           color: color,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(8),
         ),
         child: Text(
           text,

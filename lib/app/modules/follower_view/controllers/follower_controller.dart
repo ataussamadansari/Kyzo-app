@@ -3,8 +3,11 @@ import 'package:get/get.dart';
 import 'package:kyzo/app/data/repositories/user/user_repository.dart';
 import 'package:kyzo/app/data/models/follower/follower_response.dart';
 
+import '../../../core/utils/helpers.dart';
+import '../../../data/repositories/follows/follows_repository.dart';
+
 class FollowerController extends GetxController {
-  final UserRepository userRepository = UserRepository();
+  final followsRepository = FollowsRepository();
 
   // --- State Variables ---
   final isLoading = false.obs; // Initial load
@@ -59,7 +62,7 @@ class FollowerController extends GetxController {
     }
 
     try {
-      final response = await userRepository.follower(
+      final response = await followsRepository.follower(
           page: _currentPage,
           limit: _limit
       );
@@ -109,6 +112,34 @@ class FollowerController extends GetxController {
       isLoadMore.value = false;
     }
   }
+
+
+  Future<void> follow(String userId) async {
+    try {
+      final response = await followsRepository.follow(userId);
+      if(response.success) {
+        AppHelpers.showSnackBar(title: "Success", message: response.message, isError: false);
+      } else {
+        AppHelpers.showSnackBar(title: "Failed", message: response.message, isError: true);
+      }
+    } catch(e) {
+      AppHelpers.showSnackBar(title: "Error", message: "$e", isError: false);
+    }
+  }
+
+  Future<void> unFollow(String userId) async {
+    try {
+      final response = await followsRepository.unFollow(userId);
+      if(response.success) {
+        AppHelpers.showSnackBar(title: "Success", message: response.message, isError: false);
+      } else {
+        AppHelpers.showSnackBar(title: "Failed", message: response.message, isError: true);
+      }
+    } catch(e) {
+      AppHelpers.showSnackBar(title: "Error", message: "$e", isError: false);
+    }
+  }
+
 
   // Call this from RefreshIndicator
   Future<void> onRefresh() async {

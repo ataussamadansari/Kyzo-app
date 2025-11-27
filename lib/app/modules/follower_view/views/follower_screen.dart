@@ -67,12 +67,17 @@ class FollowerScreen extends GetView<FollowerController> {
         // 4. List State
         return RefreshIndicator(
           onRefresh: controller.fetchFollowers,
-          child: ListView.separated(
+          child: ListView.builder(
             controller: controller.scrollController,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            padding: const EdgeInsets.only(
+              left: 16,
+              right: 4,
+              top: 4,
+              bottom: 4,
+            ),
             itemCount: controller.followersList.length,
-            separatorBuilder: (_, __) =>
-                const Divider(height: 20, thickness: 0.5),
+            // separatorBuilder: (_, __) =>
+            //     const Divider(height: 20, thickness: 0.5),
             itemBuilder: (context, index) {
               final item = controller.followersList[index];
               final user = item.follower;
@@ -96,13 +101,23 @@ class FollowerScreen extends GetView<FollowerController> {
                 ),
                 subtitle: Text(
                   "@${user?.username ?? "username"}",
-                  style: const TextStyle(color: Colors.grey),
+                  style: context.textTheme.labelSmall,
                 ),
                 trailing: FollowBtn(
                   isFollowing: user?.isFollowing ?? false,
                   isFollowBack: user?.isFollowBack ?? false,
-                  onTap: () {},
-                  // onTap: () => controller.handleFollowUnfollow(user!),
+                  onTap: () {
+                    final isFollowing = user?.isFollowing ?? false;
+                    final isFollowBack = user?.isFollowBack ?? false;
+                    /*if (isFollowing && isFollowBack) {
+                      debugPrint("Id: ${user!.id}");
+                      debugPrint("Message");
+                    } else */if (isFollowing) {
+                      controller.unFollow(user!.id!);
+                    } else {
+                      controller.follow(user!.id!);
+                    }
+                  },
                 ),
               );
             },
