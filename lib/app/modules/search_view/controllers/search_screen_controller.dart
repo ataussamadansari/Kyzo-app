@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:kyzo/app/core/utils/helpers.dart';
 import 'package:kyzo/app/data/models/suggest/user_suggest.dart';
 import 'package:kyzo/app/data/repositories/follows/follows_repository.dart';
+import '../../../data/services/socket/socket_service.dart';
 
 class SearchScreenController extends GetxController {
   final followsRepository = FollowsRepository();
@@ -22,17 +24,39 @@ class SearchScreenController extends GetxController {
   final int _limit = 15;
   bool _hasMoreData = true;
 
+  // Stream subscriptions
+  final List<StreamSubscription> _subscriptions = [];
+
   @override
   void onInit() {
     super.onInit();
     fetchSuggestedUsers(isRefresh: true);
     scrollController.addListener(_scrollListener);
+    _setupSocketListeners();
   }
 
   @override
   void onClose() {
     scrollController.dispose();
+    // Cancel all stream subscriptions
+    for (var subscription in _subscriptions) {
+      subscription.cancel();
+    }
+    _subscriptions.clear();
     super.onClose();
+  }
+
+  void _setupSocketListeners() {
+    // Listen for following count updates to refresh suggested users
+    _subscriptions.add(
+      SocketServices.followingCountUpdateStream.listen((count) {
+        debugPrint(
+          "📊 [Search] Following count updated: $count, refreshing suggested users...",
+        );
+        // Refresh suggested users when follow/unfollow happens
+        fetchSuggestedUsers(isRefresh: true);
+      }),
+    );
   }
 
   void _scrollListener() {
@@ -116,8 +140,8 @@ class SearchScreenController extends GetxController {
           message: response.message,
           isError: false,
         );
-        // Refresh list to update follow status
-        fetchSuggestedUsers(isRefresh: true);
+        // Remove user from suggested list immediately
+        suggestedUsers.removeWhere((user) => user.id == userId);
       } else {
         AppHelpers.showSnackBar(
           title: "Failed",
@@ -139,8 +163,8 @@ class SearchScreenController extends GetxController {
           message: response.message,
           isError: false,
         );
-        // Refresh list to update follow status
-        fetchSuggestedUsers(isRefresh: true);
+        // Remove user from suggested list immediately
+        suggestedUsers.removeWhere((user) => user.id == userId);
       } else {
         AppHelpers.showSnackBar(
           title: "Failed",

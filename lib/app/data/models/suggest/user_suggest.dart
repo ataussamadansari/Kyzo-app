@@ -48,7 +48,15 @@ class UserSuggest {
 }
 
 class Users {
-  Users({this.id, this.name, this.username, this.avatar, this.bio});
+  Users({
+    this.id,
+    this.name,
+    this.username,
+    this.avatar,
+    this.bio,
+    this.isFollowing,
+    this.isFollowBack,
+  });
 
   Users.fromJson(dynamic json) {
     id = json['_id'];
@@ -56,6 +64,8 @@ class Users {
     username = json['username'];
     avatar = json['avatar'];
     bio = json['bio'];
+    isFollowing = json['isFollowing'];
+    isFollowBack = json['isFollowBack'];
   }
 
   String? id;
@@ -63,6 +73,8 @@ class Users {
   String? username;
   String? avatar;
   String? bio;
+  bool? isFollowing;
+  bool? isFollowBack;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -71,6 +83,8 @@ class Users {
     map['username'] = username;
     map['avatar'] = avatar;
     map['bio'] = bio;
+    map['isFollowing'] = isFollowing;
+    map['isFollowBack'] = isFollowBack;
     return map;
   }
 }
