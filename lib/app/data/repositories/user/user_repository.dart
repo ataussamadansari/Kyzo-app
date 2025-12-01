@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:get/get.dart';
-import 'package:kyzo/app/core/constants/constaints.dart';
+import 'package:kyzo/app/core/constants/constants.dart';
 import 'package:kyzo/app/data/models/api_response_model.dart';
 import 'package:kyzo/app/data/models/follower/follower_response.dart';
 import 'package:kyzo/app/data/models/following/following_response.dart';

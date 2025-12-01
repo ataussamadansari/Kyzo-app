@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:kyzo/app/data/repositories/user/user_repository.dart';
 import 'package:kyzo/app/data/models/follower/follower_response.dart';
 
 import '../../../core/utils/helpers.dart';
 import '../../../data/repositories/follows/follows_repository.dart';
-import '../../../data/services/socket/socket_service.dart';
 
 class FollowerController extends GetxController {
   final followsRepository = FollowsRepository();
@@ -32,31 +32,17 @@ class FollowerController extends GetxController {
 
     // Listen to scroll for pagination
     scrollController.addListener(_scrollListener);
-
-    // Setup socket listeners for real-time updates
-    _setupSocketListeners();
-  }
-
-  void _setupSocketListeners() {
-    // Listen for follow/unfollow events to refresh list
-    SocketServices.onFollowNotification = (data) {
-      debugPrint("🔔 New follower in list, refreshing...");
-      fetchFollowers(isRefresh: true);
-    };
   }
 
   @override
   void onClose() {
     scrollController.dispose();
-    // Clear socket listeners
-    SocketServices.onFollowNotification = null;
     super.onClose();
   }
 
   // Detect when user scrolls to bottom
   void _scrollListener() {
-    if (scrollController.position.pixels ==
-        scrollController.position.maxScrollExtent) {
+    if (scrollController.position.pixels == scrollController.position.maxScrollExtent) {
       // If not already loading and we have more data
       if (!isLoading.value && !isLoadMore.value && _hasMoreData) {
         fetchFollowers(isRefresh: false);
@@ -77,8 +63,8 @@ class FollowerController extends GetxController {
 
     try {
       final response = await followsRepository.follower(
-        page: _currentPage,
-        limit: _limit,
+          page: _currentPage,
+          limit: _limit
       );
 
       if (response.success && response.data != null) {
@@ -127,51 +113,33 @@ class FollowerController extends GetxController {
     }
   }
 
+
   Future<void> follow(String userId) async {
     try {
       final response = await followsRepository.follow(userId);
-      if (response.success) {
-        AppHelpers.showSnackBar(
-          title: "Success",
-          message: response.message,
-          isError: false,
-        );
-        // Refresh list to update button state
-        await fetchFollowers(isRefresh: true);
+      if(response.success) {
+        AppHelpers.showSnackBar(title: "Success", message: response.message, isError: false);
       } else {
-        AppHelpers.showSnackBar(
-          title: "Failed",
-          message: response.message,
-          isError: true,
-        );
+        AppHelpers.showSnackBar(title: "Failed", message: response.message, isError: true);
       }
-    } catch (e) {
-      AppHelpers.showSnackBar(title: "Error", message: "$e", isError: true);
+    } catch(e) {
+      AppHelpers.showSnackBar(title: "Error", message: "$e", isError: false);
     }
   }
 
   Future<void> unFollow(String userId) async {
     try {
       final response = await followsRepository.unFollow(userId);
-      if (response.success) {
-        AppHelpers.showSnackBar(
-          title: "Success",
-          message: response.message,
-          isError: false,
-        );
-        // Refresh list to update button state
-        await fetchFollowers(isRefresh: true);
+      if(response.success) {
+        AppHelpers.showSnackBar(title: "Success", message: response.message, isError: false);
       } else {
-        AppHelpers.showSnackBar(
-          title: "Failed",
-          message: response.message,
-          isError: true,
-        );
+        AppHelpers.showSnackBar(title: "Failed", message: response.message, isError: true);
       }
-    } catch (e) {
-      AppHelpers.showSnackBar(title: "Error", message: "$e", isError: true);
+    } catch(e) {
+      AppHelpers.showSnackBar(title: "Error", message: "$e", isError: false);
     }
   }
+
 
   // Call this from RefreshIndicator
   Future<void> onRefresh() async {

@@ -12,13 +12,23 @@ class ApiConstants {
   static const String resetPassword = "/auth/reset-password/:token"; // PUT
 
   // ------- USER -------
+  static const String status = "/user/status/:id"; // GET
   static const String me = "/user/me"; // GET
   static const String follow = "/user/follow/:id"; // POST
   static const String unfollow = "/user/unfollow/:id"; // POST
   static const String followers = "/user/followers"; // GET
   static const String following = "/user/following"; // GET
+  static const String suggested = "/user/suggested"; // GET
 
-
+  // ------- NOTIFICATIONS -------
+  static const String notifications = "/notifications"; // GET
+  static const String notificationsUnreadCount =
+      "/notifications/unread-count"; // GET
+  static const String notificationMarkRead = "/notifications/:id/read"; // PUT
+  static const String notificationMarkAllRead =
+      "/notifications/read-all"; // PUT
+  static const String notificationDelete = "/notifications/:id"; // DELETE
+  static const String notificationDeleteAll = "/notifications"; // DELETE
 
   // Headers
   static const String contentType = "application/json";

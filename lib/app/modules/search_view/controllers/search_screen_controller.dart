@@ -1,28 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:kyzo/app/core/utils/helpers.dart';
-import 'package:kyzo/app/data/models/following/following_response.dart';
 import 'package:kyzo/app/data/models/suggest/user_suggest.dart';
 import 'package:kyzo/app/data/repositories/follows/follows_repository.dart';
-import '../../../data/services/socket/socket_service.dart';
 
-class FollowingController extends GetxController {
+class SearchScreenController extends GetxController {
   final followsRepository = FollowsRepository();
 
-  // --- State Variables ---
-  final isLoading = false.obs; // Initial load
-  final isLoadMore = false.obs; // Pagination load
+  // State variables
+  final isLoading = false.obs;
+  final isLoadMore = false.obs;
   final isError = false.obs;
   final errorMessage = ''.obs;
 
-  // The list of followers
-  final followingList = <Followings>[].obs;
-  final color = Get.isDarkMode ? Colors.black : Colors.white;
+  // Suggested users list
+  final suggestedUsers = <Users>[].obs;
 
-  final suggestions = <Users>[].obs;
-  final isSuggestionLoading = false.obs;
-
-  // --- Pagination Variables ---
+  // Pagination
   final ScrollController scrollController = ScrollController();
   int _currentPage = 1;
   final int _limit = 15;
@@ -31,50 +25,26 @@ class FollowingController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    fetchFollowers(isRefresh: true);
-
-    // Listen to scroll for pagination
+    fetchSuggestedUsers(isRefresh: true);
     scrollController.addListener(_scrollListener);
-
-    // Setup socket listeners for real-time updates
-    _setupSocketListeners();
-  }
-
-  void _setupSocketListeners() {
-    // Refresh list when following someone or someone follows back
-    SocketServices.onFollowBackNotification = (data) {
-      debugPrint("🔔 Follow back event, refreshing following list...");
-      fetchFollowers(isRefresh: true);
-    };
-
-    SocketServices.onRequestAcceptedNotification = (data) {
-      debugPrint("🔔 Request accepted, refreshing following list...");
-      fetchFollowers(isRefresh: true);
-    };
   }
 
   @override
   void onClose() {
     scrollController.dispose();
-    // Clear socket listeners
-    fetchSuggested(); // <-- add this
-    SocketServices.onFollowBackNotification = null;
-    SocketServices.onRequestAcceptedNotification = null;
     super.onClose();
   }
 
-  // Detect when user scrolls to bottom
   void _scrollListener() {
     if (scrollController.position.pixels ==
         scrollController.position.maxScrollExtent) {
-      // If not already loading and we have more data
       if (!isLoading.value && !isLoadMore.value && _hasMoreData) {
-        fetchFollowers(isRefresh: false);
+        fetchSuggestedUsers(isRefresh: false);
       }
     }
   }
 
-  Future<void> fetchFollowers({bool isRefresh = false}) async {
+  Future<void> fetchSuggestedUsers({bool isRefresh = false}) async {
     if (isRefresh) {
       isLoading.value = true;
       _currentPage = 1;
@@ -86,7 +56,7 @@ class FollowingController extends GetxController {
     }
 
     try {
-      final response = await followsRepository.following(
+      final response = await followsRepository.suggest(
         page: _currentPage,
         limit: _limit,
       );
@@ -94,36 +64,35 @@ class FollowingController extends GetxController {
       if (response.success && response.data != null) {
         final data = response.data!;
 
-        // Calculate if we have more data based on total pages
+        // Check if we have more data
         if (data.totalPage != null) {
           if (_currentPage >= data.totalPage!) {
             _hasMoreData = false;
           }
         } else {
-          // Fallback if totalPage is null: stop if received list is smaller than limit
-          if ((data.followings?.length ?? 0) < _limit) {
+          if ((data.users?.length ?? 0) < _limit) {
             _hasMoreData = false;
           }
         }
 
-        if (data.followings != null) {
+        if (data.users != null) {
           if (isRefresh) {
-            followingList.assignAll(data.followings!);
+            suggestedUsers.assignAll(data.users!);
           } else {
-            followingList.addAll(data.followings!);
+            suggestedUsers.addAll(data.users!);
           }
-
-          // Increment page for next call
           _currentPage++;
         }
       } else {
-        // Only show full screen error if it's the initial load
         if (isRefresh) {
           isError.value = true;
           errorMessage.value = response.message;
         } else {
-          // Maybe show a snackbar for load more error
-          Get.snackbar("Error", "Could not load more followers");
+          AppHelpers.showSnackBar(
+            title: "Error",
+            message: "Could not load more users",
+            isError: true,
+          );
         }
       }
     } catch (e) {
@@ -131,25 +100,10 @@ class FollowingController extends GetxController {
         isError.value = true;
         errorMessage.value = "An unexpected error occurred";
       }
+      debugPrint("Error fetching suggested users: $e");
     } finally {
       isLoading.value = false;
       isLoadMore.value = false;
-    }
-  }
-
-  Future<void> fetchSuggested() async {
-    try {
-      isSuggestionLoading.value = true;
-
-      final res = await followsRepository.suggest(page: 1, limit: 10);
-
-      if (res.success && res.data != null) {
-        suggestions.assignAll(res.data!.users!);
-      }
-    } catch (e) {
-      debugPrint("Error loading suggestions: $e");
-    } finally {
-      isSuggestionLoading.value = false;
     }
   }
 
@@ -162,8 +116,8 @@ class FollowingController extends GetxController {
           message: response.message,
           isError: false,
         );
-        // Refresh list to update button state
-        await fetchFollowers(isRefresh: true);
+        // Refresh list to update follow status
+        fetchSuggestedUsers(isRefresh: true);
       } else {
         AppHelpers.showSnackBar(
           title: "Failed",
@@ -185,8 +139,8 @@ class FollowingController extends GetxController {
           message: response.message,
           isError: false,
         );
-        // Refresh list to update button state
-        await fetchFollowers(isRefresh: true);
+        // Refresh list to update follow status
+        fetchSuggestedUsers(isRefresh: true);
       } else {
         AppHelpers.showSnackBar(
           title: "Failed",
@@ -199,8 +153,7 @@ class FollowingController extends GetxController {
     }
   }
 
-  // Call this from RefreshIndicator
   Future<void> onRefresh() async {
-    await fetchFollowers(isRefresh: true);
+    await fetchSuggestedUsers(isRefresh: true);
   }
 }

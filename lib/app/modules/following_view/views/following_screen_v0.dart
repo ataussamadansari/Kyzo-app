@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:kyzo/app/modules/search_view/controllers/search_screen_controller.dart';
+import '../../../globle_widgets/follow/follow_btn.dart';
+import '../controllers/following_controller.dart';
 
-class SearchScreen extends GetView<SearchScreenController> {
-  const SearchScreen({super.key});
+class FollowingScreen extends GetView<FollowingController> {
+  const FollowingScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Suggested Users'),
+        title: const Text('Following'),
         elevation: 0,
         scrolledUnderElevation: 0,
       ),
@@ -32,8 +33,7 @@ class SearchScreen extends GetView<SearchScreenController> {
                 ),
                 const SizedBox(height: 10),
                 ElevatedButton(
-                  onPressed: () =>
-                      controller.fetchSuggestedUsers(isRefresh: true),
+                  onPressed: controller.fetchFollowers,
                   child: const Text("Retry"),
                 ),
               ],
@@ -42,9 +42,9 @@ class SearchScreen extends GetView<SearchScreenController> {
         }
 
         // 3. Empty State
-        if (controller.suggestedUsers.isEmpty) {
+        if (controller.followingList.isEmpty) {
           return RefreshIndicator(
-            onRefresh: controller.onRefresh,
+            onRefresh: controller.fetchFollowers,
             child: ListView(
               physics: const AlwaysScrollableScrollPhysics(),
               children: [
@@ -52,7 +52,7 @@ class SearchScreen extends GetView<SearchScreenController> {
                   height: Get.height * 0.7,
                   child: Center(
                     child: Text(
-                      "No suggested users",
+                      "No followers yet",
                       style: context.textTheme.bodyLarge?.copyWith(
                         color: Colors.grey,
                       ),
@@ -66,7 +66,7 @@ class SearchScreen extends GetView<SearchScreenController> {
 
         // 4. List State
         return RefreshIndicator(
-          onRefresh: controller.onRefresh,
+          onRefresh: controller.fetchFollowers,
           child: ListView.builder(
             controller: controller.scrollController,
             padding: const EdgeInsets.only(
@@ -75,19 +75,12 @@ class SearchScreen extends GetView<SearchScreenController> {
               top: 4,
               bottom: 4,
             ),
-            itemCount:
-            controller.suggestedUsers.length +
-                (controller.isLoadMore.value ? 1 : 0),
+            itemCount: controller.followingList.length,
+            // separatorBuilder: (_, __) =>
+            //     const Divider(height: 20, thickness: 0.5),
             itemBuilder: (context, index) {
-              // Show loading indicator at bottom when loading more
-              if (index == controller.suggestedUsers.length) {
-                return const Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: Center(child: CircularProgressIndicator()),
-                );
-              }
-
-              final user = controller.suggestedUsers[index];
+              final item = controller.followingList[index];
+              final user = item.following;
 
               return ListTile(
                 contentPadding: EdgeInsets.zero,
@@ -95,46 +88,36 @@ class SearchScreen extends GetView<SearchScreenController> {
                   radius: 25,
                   backgroundColor: Colors.grey[200],
                   backgroundImage:
-                  (user.avatar != null && user.avatar!.isNotEmpty)
+                      (user?.avatar != null && user!.avatar!.isNotEmpty)
                       ? NetworkImage(user.avatar!)
                       : null,
-                  child: (user.avatar == null || user.avatar!.isEmpty)
+                  child: (user?.avatar == null || user!.avatar!.isEmpty)
                       ? const Icon(Icons.person, color: Colors.grey)
                       : null,
                 ),
                 title: Text(
-                  user.name ?? "Unknown User",
+                  user?.name ?? "Unknown User",
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "@${user.username ?? "username"}",
-                      style: const TextStyle(color: Colors.grey),
-                    ),
-                    if (user.bio != null && user.bio!.isNotEmpty)
-                      Text(
-                        user.bio!,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(color: Colors.grey[600], fontSize: 12),
-                      ),
-                  ],
+                subtitle: Text(
+                  "@${user?.username ?? "username"}",
+                  style: const TextStyle(color: Colors.grey),
                 ),
-                trailing: SizedBox(
-                  width: 100,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      if (user.id != null) {
-                        controller.follow(user.id!);
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                    ),
-                    child: const Text("Follow"),
-                  ),
+                trailing: FollowBtn(
+                  isFollowing: user?.isFollowing ?? false,
+                  isFollowBack: user?.isFollowBack ?? false,
+                  onTap: () {
+                    final isFollowing = user?.isFollowing ?? false;
+                    final isFollowBack = user?.isFollowBack ?? false;
+                    /*if (isFollowing && isFollowBack) {
+                      debugPrint("Id: ${user!.id}");
+                      debugPrint("Message");
+                    } else */if (isFollowing) {
+                      controller.unFollow(user!.id!);
+                    } else {
+                      controller.follow(user!.id!);
+                    }
+                  },
                 ),
               );
             },

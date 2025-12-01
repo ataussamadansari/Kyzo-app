@@ -9,6 +9,8 @@ class User {
     this.avatar,
     this.avatarId,
     this.bio,
+    this.followersCount,
+    this.followingCount,
     this.isPrivate,
     this.isOnline,
     this.lastSeen,
@@ -30,6 +32,8 @@ class User {
     avatar = json['avatar']?.toString();
     avatarId = json['avatarId']?.toString();
     bio = json['bio']?.toString();
+    followersCount = json['followersCount'] as int? ?? 0;
+    followingCount = json['followingCount'] as int? ?? 0;
     isPrivate = json['isPrivate'] as bool? ?? false;
     isOnline = json['isOnline'] as bool? ?? false;
     lastSeen = json['lastSeen']?.toString(); // Handle null
@@ -50,6 +54,8 @@ class User {
   String? avatar;
   String? avatarId;
   String? bio;
+  int? followersCount;
+  int? followingCount;
   bool? isPrivate;
   bool? isOnline;
   String? lastSeen; // Changed from dynamic to String?
@@ -71,6 +77,8 @@ class User {
     map['avatar'] = avatar;
     map['avatarId'] = avatarId;
     map['bio'] = bio;
+    map['followersCount'] = followersCount;
+    map['followingCount'] = followingCount;
     map['isPrivate'] = isPrivate;
     map['isOnline'] = isOnline;
     map['lastSeen'] = lastSeen; // This can be null, but it's safe

@@ -7,6 +7,7 @@ abstract class Routes
     static const main = '/main';
     static const follower = '/follower';
     static const following = '/following';
+    static const notifications = '/notifications';
 
 
 }

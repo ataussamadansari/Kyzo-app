@@ -3,7 +3,7 @@ import 'package:dio/dio.dart';
 import 'package:get/get.dart' as getx;
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 
-import '../../core/constants/constaints.dart';
+import '../../core/constants/constants.dart';
 import '../services/storage_services.dart';
 
 class ApiProvider {

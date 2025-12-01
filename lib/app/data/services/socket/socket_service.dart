@@ -1,139 +1,160 @@
-// lib/services/socket_service.dart
 import 'dart:async';
-import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:socket_io_client/socket_io_client.dart' as io;
 
-class SocketService {
-  static final SocketService _instance = SocketService._internal();
-  factory SocketService() => _instance;
-  SocketService._internal();
+class SocketServices {
+  static io.Socket? socket;
 
-  IO.Socket? _socket;
+  // Stream controllers for broadcasting events to multiple listeners
+  static final _followNotificationController =
+  StreamController<Map<String, dynamic>>.broadcast();
+  static final _followRequestNotificationController =
+  StreamController<Map<String, dynamic>>.broadcast();
+  static final _followBackNotificationController =
+  StreamController<Map<String, dynamic>>.broadcast();
+  static final _requestAcceptedNotificationController =
+  StreamController<Map<String, dynamic>>.broadcast();
+  static final _requestRejectedNotificationController =
+  StreamController<Map<String, dynamic>>.broadcast();
+  static final _followersCountUpdateController =
+  StreamController<int>.broadcast();
+  static final _followingCountUpdateController =
+  StreamController<int>.broadcast();
 
-  // Stream controllers for events app cares about
-  final _followController = StreamController<Map<String, dynamic>>.broadcast();
-  final _unfollowController = StreamController<Map<String, dynamic>>.broadcast();
-  final _notificationController = StreamController<Map<String, dynamic>>.broadcast();
-  final _followRequestController = StreamController<Map<String, dynamic>>.broadcast();
-  final _requestAcceptedController = StreamController<Map<String, dynamic>>.broadcast();
-  final _presenceController = StreamController<Map<String, dynamic>>.broadcast();
-  final _connectController = StreamController<bool>.broadcast();
+  // Streams for listening to events
+  static Stream<Map<String, dynamic>> get followNotificationStream =>
+      _followNotificationController.stream;
+  static Stream<Map<String, dynamic>> get followRequestNotificationStream =>
+      _followRequestNotificationController.stream;
+  static Stream<Map<String, dynamic>> get followBackNotificationStream =>
+      _followBackNotificationController.stream;
+  static Stream<Map<String, dynamic>> get requestAcceptedNotificationStream =>
+      _requestAcceptedNotificationController.stream;
+  static Stream<Map<String, dynamic>> get requestRejectedNotificationStream =>
+      _requestRejectedNotificationController.stream;
+  static Stream<int> get followersCountUpdateStream =>
+      _followersCountUpdateController.stream;
+  static Stream<int> get followingCountUpdateStream =>
+      _followingCountUpdateController.stream;
 
-  // Public streams
-  Stream<Map<String, dynamic>> get onFollow => _followController.stream;
-  Stream<Map<String, dynamic>> get onUnfollow => _unfollowController.stream;
-  Stream<Map<String, dynamic>> get onNotification => _notificationController.stream;
-  Stream<Map<String, dynamic>> get onFollowRequest => _followRequestController.stream;
-  Stream<Map<String, dynamic>> get onRequestAccepted => _requestAcceptedController.stream;
-  Stream<Map<String, dynamic>> get onPresence => _presenceController.stream;
-  Stream<bool> get onConnect => _connectController.stream;
+  // Legacy callbacks for backward compatibility (deprecated)
+  static Function(Map<String, dynamic>)? onFollowNotification;
+  static Function(Map<String, dynamic>)? onFollowRequestNotification;
+  static Function(Map<String, dynamic>)? onFollowBackNotification;
+  static Function(Map<String, dynamic>)? onRequestAcceptedNotification;
+  static Function(Map<String, dynamic>)? onRequestRejectedNotification;
+  static Function(int)? onFollowersCountUpdate;
+  static Function(int)? onFollowingCountUpdate;
 
-  bool get isConnected => _socket?.connected ?? false;
-
-  /// Connect socket with JWT token (required by server)
-  /// If [host] is null, the service will read HOST_URL from dotenv at runtime.
-  void connect(String jwtToken, {String? host}) {
-    // Ensure dotenv loaded before reading env
-    final effectiveHost = host ?? dotenv.env['HOST_URL'] ?? '';
-    if (effectiveHost.isEmpty) {
-      throw Exception('Socket host is empty. Provide host or set HOST_URL in .env and call dotenv.load() before connect().');
+  static void connectSocket(String token, String userId) {
+    // Disconnect existing socket if any
+    if (socket != null) {
+      disconnect();
     }
 
-    if (_socket != null && _socket!.connected) return;
+    final socketUrl = dotenv.env['SOCKET_URL'];
+    if (socketUrl == null || socketUrl.isEmpty) {
+      debugPrint("❌ SOCKET_URL not found in .env");
+      return;
+    }
 
-    // Build options
-    final options = IO.OptionBuilder()
-        .setTransports(['websocket']) // Flutter needs websocket transport
-        .disableAutoConnect() // we'll call connect() manually
-        .enableReconnection() // try to reconnect automatically
-        .setExtraHeaders({'Authorization': 'Bearer $jwtToken'}) // send token in headers (server reads Authorization)
-        .build();
+    socket = io.io(
+      socketUrl,
+      io.OptionBuilder()
+          .setTransports(['websocket'])
+          .setAuth({"token": token})
+          .enableReconnection()
+          .setReconnectionDelay(1000)
+          .setReconnectionDelayMax(5000)
+          .setReconnectionAttempts(5)
+          .disableAutoConnect()
+          .build(),
+    );
 
-    _socket = IO.io(effectiveHost, options);
-
-    // Register basic lifecycle handlers
-    _socket!.on('connect', (_) {
-      print('[socket] connected: ${_socket!.id}');
-      _connectController.add(true);
+    socket!.onConnect((_) {
+      debugPrint("🔌 Socket Connected: ${socket!.id}");
     });
 
-    _socket!.on('disconnect', (reason) {
-      print('[socket] disconnected: $reason');
-      _connectController.add(false);
+    socket!.onDisconnect((_) {
+      debugPrint("❌ Socket Disconnected");
     });
 
-    _socket!.on('connect_error', (err) {
-      print('[socket] connect_error: $err');
+    socket!.onConnectError((data) {
+      debugPrint("⚠️ Connect Error: $data");
     });
 
-    // Custom app events
-    _socket!.on('follow', (data) => _handleIncoming(_followController, data, 'follow'));
-    _socket!.on('unfollow', (data) => _handleIncoming(_unfollowController, data, 'unfollow'));
-    _socket!.on('notification', (data) => _handleIncoming(_notificationController, data, 'notification'));
-    _socket!.on('follow_request', (data) => _handleIncoming(_followRequestController, data, 'follow_request'));
-    _socket!.on('request_accepted', (data) => _handleIncoming(_requestAcceptedController, data, 'request_accepted'));
+    socket!.onError((data) {
+      debugPrint("⚠️ Socket Error: $data");
+    });
 
-    // presence events (optional)
-    _socket!.on('presence:online', (data) => _handleIncoming(_presenceController, data, 'presence:online'));
-    _socket!.on('presence:offline', (data) => _handleIncoming(_presenceController, data, 'presence:offline'));
+    // ============ FOLLOW/UNFOLLOW EVENTS ============
+    socket!.on("notification:follow", (data) {
+      debugPrint("🔔 New follower: $data");
+      _followNotificationController.add(data);
+      onFollowNotification?.call(data); // Legacy support
+    });
 
-    // Connect now
-    _socket!.connect();
-  }
+    socket!.on("notification:follow_request", (data) {
+      debugPrint("🔔 Follow request: $data");
+      _followRequestNotificationController.add(data);
+      onFollowRequestNotification?.call(data); // Legacy support
+    });
 
-  void _handleIncoming(StreamController<Map<String, dynamic>> controller, dynamic data, String name) {
-    try {
-      if (data is Map) {
-        controller.add(Map<String, dynamic>.from(data));
-      } else if (data is String) {
-        controller.add({'message': data});
-      } else {
-        // sometimes data is a List or other type
-        controller.add({'payload': data});
+    socket!.on("notification:follow_back", (data) {
+      debugPrint("🔔 Follow back: $data");
+      _followBackNotificationController.add(data);
+      onFollowBackNotification?.call(data); // Legacy support
+    });
+
+    socket!.on("notification:request_accepted", (data) {
+      debugPrint("🔔 Request accepted: $data");
+      _requestAcceptedNotificationController.add(data);
+      onRequestAcceptedNotification?.call(data); // Legacy support
+    });
+
+    socket!.on("notification:request_rejected", (data) {
+      debugPrint("🔔 Request rejected: $data");
+      _requestRejectedNotificationController.add(data);
+      onRequestRejectedNotification?.call(data); // Legacy support
+    });
+
+    // ============ COUNT UPDATES ============
+    socket!.on("update:followers_count", (data) {
+      debugPrint("📊 Followers count updated: $data");
+      if (data['count'] != null) {
+        final count = data['count'] as int;
+        _followersCountUpdateController.add(count);
+        onFollowersCountUpdate?.call(count); // Legacy support
       }
-    } catch (e) {
-      print('[socket] error parsing $name: $e');
-    }
+    });
+
+    socket!.on("update:following_count", (data) {
+      debugPrint("📊 Following count updated: $data");
+      if (data['count'] != null) {
+        final count = data['count'] as int;
+        _followingCountUpdateController.add(count);
+        onFollowingCountUpdate?.call(count); // Legacy support
+      }
+    });
+
+    socket!.connect();
   }
 
-  /// Disconnect cleanly and dispose socket (use on logout to avoid leaks)
-  void disconnect() {
-    try {
-      _socket?.dispose(); // important for iOS memory leak fix
-    } catch (e) {
-      _socket?.disconnect();
-    }
-    _socket = null;
-  }
+  static void disconnect() {
+    socket?.disconnect();
+    socket?.dispose();
+    socket = null;
 
-  /// Emit with optional ack
-  void emit(String event, dynamic data, {Function? ack}) {
-    if (_socket == null) return;
-    if (ack != null) {
-      _socket!.emitWithAck(event, data, ack: ack);
-    } else {
-      _socket!.emit(event, data);
-    }
-  }
+    // Clear callbacks
+    onFollowNotification = null;
+    onFollowRequestNotification = null;
+    onFollowBackNotification = null;
+    onRequestAcceptedNotification = null;
+    onRequestRejectedNotification = null;
+    onFollowersCountUpdate = null;
+    onFollowingCountUpdate = null;
 
-  /// Update headers (e.g., when token refreshes). NOTE: must reconnect to apply new headers.
-  void updateAuthHeader(String jwtToken) {
-    if (_socket == null) return;
-    _socket!.io.options?['extraHeaders'] = {'Authorization': 'Bearer $jwtToken'};
-    // force reconnect so new headers will be used
-    _socket!.disconnect();
-    _socket!.connect();
-  }
-
-  // Cleanup streams when app disposed (optional)
-  void dispose() {
-    disconnect();
-    _followController.close();
-    _unfollowController.close();
-    _notificationController.close();
-    _followRequestController.close();
-    _requestAcceptedController.close();
-    _presenceController.close();
-    _connectController.close();
+    debugPrint("🔌 Socket Force Disconnected");
   }
 }

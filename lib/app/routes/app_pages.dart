@@ -7,6 +7,8 @@ import 'package:kyzo/app/modules/login_view/bindings/login_screen_binding.dart';
 import 'package:kyzo/app/modules/login_view/views/login_screen.dart';
 import 'package:kyzo/app/modules/main_view/bindings/main_screen_binding.dart';
 import 'package:kyzo/app/modules/main_view/views/main_screen.dart';
+import 'package:kyzo/app/modules/notification_view/bindings/notification_binding.dart';
+import 'package:kyzo/app/modules/notification_view/views/notification_screen.dart';
 import 'package:kyzo/app/modules/register_view/bindings/register_screen_binding.dart';
 import 'package:kyzo/app/modules/register_view/views/register_screen.dart';
 import 'package:kyzo/app/modules/splash_view/bindings/splash_screen_binding.dart';
@@ -52,6 +54,11 @@ class AppPages {
       name: Routes.following,
       page: () => FollowingScreen(),
       binding: FollowingBinding(),
+    ),
+    GetPage(
+      name: Routes.notifications,
+      page: () => NotificationScreen(),
+      binding: NotificationBinding(),
     ),
   ];
 }

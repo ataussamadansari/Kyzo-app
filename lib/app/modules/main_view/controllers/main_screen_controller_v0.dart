@@ -1,7 +1,9 @@
+import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 
 import '../../../data/services/socket/socket_service.dart';
 import '../../../data/services/storage_services.dart';
+import '../../../routes/app_routes.dart';
 
 class MainController extends GetxController {
   final storage = StorageServices.to;
@@ -14,13 +16,14 @@ class MainController extends GetxController {
     final token = storage.getToken();
     final userId = storage.getUserId();
     profileImg.value = storage.read("profile_img") ?? "";
-
-    if (token != null && userId != null) {
-      SocketServices.connectSocket(token, userId);
-    }
   }
 
   void changePage(int index) {
     currentIndex.value = index;
+  }
+
+  void logout() {
+    StorageServices.to.removeToken();
+    Get.offAllNamed(Routes.login);
   }
 }

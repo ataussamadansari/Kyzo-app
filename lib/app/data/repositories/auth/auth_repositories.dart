@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:get/get.dart' hide FormData, MultipartFile;
-import 'package:kyzo/app/core/constants/constaints.dart';
+import 'package:kyzo/app/core/constants/constants.dart';
 
 import '../../models/api_response_model.dart';
 import '../../models/auth/auth_response.dart';

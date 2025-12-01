@@ -5,7 +5,6 @@ import 'package:kyzo/app/data/repositories/follows/follows_repository.dart';
 import 'package:kyzo/app/data/services/storage_services.dart';
 
 import '../../../data/repositories/user/user_repository.dart';
-import '../../../data/services/socket/socket_debug_helper.dart';
 import '../../../data/services/socket/socket_service.dart';
 import '../../../routes/app_routes.dart';
 
@@ -40,82 +39,22 @@ class ProfileController extends GetxController {
 
     photos.assignAll(List.generate(12, (i) => '')); // placeholders
     videos.assignAll(List.generate(6, (i) => ''));
-
-    // Setup socket listeners for real-time updates
-    _setupSocketListeners();
-  }
-
-  void _setupSocketListeners() {
-    // Debug: Check socket connection
-    SocketDebugHelper.printSocketInfo();
-
-    // Listen for followers count updates
-    SocketServices.onFollowersCountUpdate = (count) {
-      debugPrint("✅ Followers count updated via socket: $count");
-      followersCount.value = count;
-    };
-
-    // Listen for following count updates
-    SocketServices.onFollowingCountUpdate = (count) {
-      debugPrint("✅ Following count updated via socket: $count");
-      followingCount.value = count;
-    };
-
-    // Listen for new follower notifications
-    SocketServices.onFollowNotification = (data) {
-      debugPrint("🔔 New follower notification: $data");
-      AppHelpers.showSnackBar(
-        title: "New Follower",
-        message: "${data['sender']['name']} started following you",
-      );
-      // Refresh follower count from API as backup
-      follower();
-    };
-
-    // Listen for follow back notifications
-    SocketServices.onFollowBackNotification = (data) {
-      debugPrint("🔔 Follow back notification: $data");
-      AppHelpers.showSnackBar(
-        title: "Follow Back",
-        message: "${data['sender']['name']} followed you back",
-      );
-    };
-
-    debugPrint("✅ Socket listeners setup complete");
-  }
-
-  @override
-  void onClose() {
-    // Clear socket listeners when controller is disposed
-    SocketServices.onFollowersCountUpdate = null;
-    SocketServices.onFollowingCountUpdate = null;
-    SocketServices.onFollowNotification = null;
-    SocketServices.onFollowBackNotification = null;
-    super.onClose();
   }
 
   Future<void> me() async {
     try {
       final response = await userRepository.me();
-      if (response.success) {
+      if(response.success) {
         storage.write("username", response.data!.user!.username ?? "");
         storage.write("profile_img", response.data!.user!.avatar ?? "");
         username.value = response.data!.user!.username ?? "-";
         displayName.value = response.data!.user!.name!;
         bio.value = response.data!.user!.bio!;
         avatarUrl.value = response.data!.user!.avatar;
-
-        // Set initial counts from user data
-        followersCount.value = response.data!.user!.followersCount ?? 0;
-        followingCount.value = response.data!.user!.followingCount ?? 0;
       }
-    } catch (e) {
+    } catch(e) {
       debugPrint("Error: $e");
-      AppHelpers.showSnackBar(
-        title: "Error",
-        message: e.toString(),
-        isError: true,
-      );
+      AppHelpers.showSnackBar(title: "Error", message: e.toString(), isError: true);
     }
   }
 
@@ -139,10 +78,10 @@ class ProfileController extends GetxController {
   Future<void> following() async {
     try {
       final response = await followsRepository.following();
-      if (response.success) {
+      if(response.success) {
         followingCount.value = response.data!.total!.toInt();
       }
-    } catch (e) {
+    } catch(e) {
       debugPrint("Error: $e");
     }
   }
@@ -159,6 +98,7 @@ class ProfileController extends GetxController {
 
   void logOut() {
     Get.offAllNamed(Routes.login);
+    SocketServices.disconnect();
     storage.clear();
     storage.remove("username");
     storage.remove("profile_img");

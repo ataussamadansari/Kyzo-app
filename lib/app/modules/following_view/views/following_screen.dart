@@ -88,7 +88,7 @@ class FollowingScreen extends GetView<FollowingController> {
                   radius: 25,
                   backgroundColor: Colors.grey[200],
                   backgroundImage:
-                      (user?.avatar != null && user!.avatar!.isNotEmpty)
+                  (user?.avatar != null && user!.avatar!.isNotEmpty)
                       ? NetworkImage(user.avatar!)
                       : null,
                   child: (user?.avatar == null || user!.avatar!.isEmpty)
